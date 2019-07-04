@@ -3,8 +3,6 @@ package storage
 import (
 	"context"
 	"errors"
-	"fmt"
-
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/evgeny08/collection-key/types"
@@ -25,7 +23,7 @@ func (s *Storage) GetKey(ctx context.Context) (*types.Key, error) {
 		return nil, err
 	}
 
-	_, err = s.session.Collection(collectionKey).UpdateOne(context.TODO(),bson.M{"issued": key.Issued}, bson.M{"$set": bson.M{"issued": true}})
+	_, err = s.session.Collection(collectionKey).UpdateOne(context.TODO(), bson.M{"issued": key.Issued}, bson.M{"$set": bson.M{"issued": true}})
 	if err != nil {
 		return nil, err
 	}
@@ -37,9 +35,8 @@ func (s *Storage) GetKey(ctx context.Context) (*types.Key, error) {
 // CanceledKey updates key Redemption with given id
 func (s *Storage) CanceledKey(ctx context.Context, id string) error {
 	var key *types.Key
-	err := s.session.Collection(collectionKey).FindOne(context.TODO(),bson.M{"id": id}).Decode(&key)
+	err := s.session.Collection(collectionKey).FindOne(context.TODO(), bson.M{"id": id}).Decode(&key)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	if !key.Issued {
@@ -54,7 +51,17 @@ func (s *Storage) CanceledKey(ctx context.Context, id string) error {
 	}
 	return nil
 }
-//
+
+// VerificationKey return key info
+func (s *Storage) VerificationKey(ctx context.Context, id string) (*types.Key, error) {
+	var key *types.Key
+	err := s.session.Collection(collectionKey).FindOne(context.TODO(), bson.M{"id": id}).Decode(&key)
+	if err != nil {
+		return nil, err
+	}
+	return key, nil
+}
+
 //// CreateSession create new session in storage
 //func (s *Storage) CreateSession(ctx context.Context, session *types.Session) error {
 //	_, err := s.session.Collection(collectionAuth).InsertOne(context.TODO(), &session)

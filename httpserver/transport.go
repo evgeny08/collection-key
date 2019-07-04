@@ -14,7 +14,7 @@ import (
 	"github.com/evgeny08/collection-key/types"
 )
 
-// Service.CreateKey encoders/decoders.
+// Service CreateKey encoders/decoders.
 func encodeCreateKeyRequest(_ context.Context, r *http.Request, _ interface{}) error {
 	r.URL.Path = "/api/v1/key"
 	return nil
@@ -42,7 +42,7 @@ func decodeCreateKeyResponse(_ context.Context, r *http.Response) (interface{}, 
 	return res, err
 }
 
-// Service.GetKey encoders/decoders.
+// Service GetKey encoders/decoders.
 func encodeGetKeyRequest(_ context.Context, r *http.Request, _ interface{}) error {
 	r.URL.Path = "/api/v1/key/issued"
 	return nil
@@ -97,6 +97,37 @@ func decodeCanceledKeyResponse(_ context.Context, r *http.Response) (interface{}
 	}
 	return canceledKeyResponse{Err: nil}, nil
 }
+
+// Service VerificationKey encoders/decoders.
+func encodeVerificationKeyRequest(_ context.Context, r *http.Request, request interface{}) error {
+	req := request.(verificationKeyRequest)
+	r.URL.Path = "/api/v1/key/" + url.QueryEscape(req.ID) + "/key"
+	return nil
+}
+
+func decodeVerificationKeyRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	id := mux.Vars(r)["id"]
+	return verificationKeyRequest{ID: id}, nil
+}
+
+func encodeVerificationKeyResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	res := response.(verificationKeyResponse)
+	if res.Err != nil {
+		return encodeError(w, res.Err, true)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(res.Key)
+}
+
+func decodeVerificationKeyResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	if r.StatusCode < 200 || r.StatusCode > 299 {
+		return verificationKeyResponse{Err: decodeError(r)}, nil
+	}
+	res := getKeyResponse{Key: &types.Key{}}
+	err := json.NewDecoder(r.Body).Decode(&res.Key)
+	return res, err
+}
+
 // errKindToStatus maps service error kinds to the HTTP response codes.
 var errKindToStatus = map[ErrorKind]int{
 	ErrBadParams: http.StatusBadRequest,

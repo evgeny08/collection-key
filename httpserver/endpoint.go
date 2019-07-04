@@ -47,3 +47,20 @@ type canceledKeyRequest struct {
 type canceledKeyResponse struct {
 	Err error
 }
+
+func makeVerificationKeyEndpoint(svc service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(verificationKeyRequest)
+		key, err := svc.verificationKey(ctx, req.ID)
+		return verificationKeyResponse{Key: key, Err: err}, nil
+	}
+}
+
+type verificationKeyRequest struct {
+	ID string
+}
+
+type verificationKeyResponse struct {
+	Key *types.Key
+	Err error
+}

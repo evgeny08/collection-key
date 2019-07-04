@@ -51,3 +51,15 @@ func (m *loggingMiddleware) canceledKey(ctx context.Context, id string) error {
 	)
 	return err
 }
+
+func (m *loggingMiddleware) verificationKey(ctx context.Context, id string) (*types.Key, error) {
+	begin := time.Now()
+	key, err := m.next.verificationKey(ctx, id)
+	err = level.Info(m.logger).Log(
+		"method", "VerificationKey",
+		"err", err,
+		"elapsed", time.Since(begin),
+		"id", key.ID,
+	)
+	return key, err
+}
