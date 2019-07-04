@@ -31,3 +31,19 @@ type getKeyResponse struct {
 	Key *types.Key
 	Err error
 }
+
+func makeCanceledKeyEndpoint(svc service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(canceledKeyRequest)
+		err := svc.canceledKey(ctx, req.ID)
+		return canceledKeyResponse{Err: err}, nil
+	}
+}
+
+type canceledKeyRequest struct {
+	ID string
+}
+
+type canceledKeyResponse struct {
+	Err error
+}

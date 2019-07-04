@@ -3,6 +3,7 @@ package httpserver
 import (
 	"context"
 	"math/rand"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 
@@ -13,6 +14,7 @@ import (
 type service interface {
 	createKey(ctx context.Context) (*types.Key, error)
 	getKey(ctx context.Context) (*types.Key, error)
+	canceledKey(ctx context.Context, id string) error
 }
 
 type basicService struct {
@@ -54,6 +56,21 @@ func (s *basicService) getKey(ctx context.Context) (*types.Key, error){
 	return key, nil
 }
 
+// canceledKey updates key canceled with given id
+func (s *basicService) canceledKey(ctx context.Context, id string) error {
+	if strings.TrimSpace(id) == "" {
+		return errorf(ErrBadParams, "empty key id")
+	}
+
+	err := s.storage.CanceledKey(ctx, id)
+	if err != nil {
+		if storageErrIsNotFound(err) {
+			return errorf(ErrNotFound, "key is not found")
+		}
+		return errorf(ErrBadParams, "failed to canceled key: %v", err)
+	}
+	return nil
+}
 
 // storageErrIsNotFound checks if the storage error is "not found".
 func storageErrIsNotFound(err error) bool {

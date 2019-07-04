@@ -5,8 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/evgeny08/collection-key/types"
@@ -68,7 +70,33 @@ func decodeGetKeyResponse(_ context.Context, r *http.Response) (interface{}, err
 	return res, err
 }
 
+// Service CanceledKey encoders/decoders.
+func encodeCanceledKeyRequest(_ context.Context, r *http.Request, request interface{}) error {
+	req := request.(canceledKeyRequest)
+	r.URL.Path = "/api/v1/key/" + url.QueryEscape(req.ID) + "/canceled"
+	return nil
+}
 
+func decodeCanceledKeyRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	id := mux.Vars(r)["id"]
+	return canceledKeyRequest{ID: id}, nil
+}
+
+func encodeCanceledKeyResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	res := response.(canceledKeyResponse)
+	if res.Err != nil {
+		return encodeError(w, res.Err, true)
+	}
+	w.WriteHeader(http.StatusOK)
+	return nil
+}
+
+func decodeCanceledKeyResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	if r.StatusCode < 200 || r.StatusCode > 299 {
+		return canceledKeyResponse{Err: decodeError(r)}, nil
+	}
+	return canceledKeyResponse{Err: nil}, nil
+}
 // errKindToStatus maps service error kinds to the HTTP response codes.
 var errKindToStatus = map[ErrorKind]int{
 	ErrBadParams: http.StatusBadRequest,

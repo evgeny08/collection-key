@@ -27,6 +27,9 @@ func newHandler(cfg *handlerConfig) http.Handler {
 	getKeyEndpoint := makeGetKeyEndpoint(svc)
 	getKeyEndpoint = applyMiddleware(getKeyEndpoint, "GetKey", cfg)
 
+	canceledKeyEndpoint := makeCanceledKeyEndpoint(svc)
+	canceledKeyEndpoint = applyMiddleware(canceledKeyEndpoint, "RedemptionKey", cfg)
+
 	router := mux.NewRouter()
 
 	router.Path("/api/v1/key").Methods("POST").Handler(kithttp.NewServer(
@@ -39,6 +42,12 @@ func newHandler(cfg *handlerConfig) http.Handler {
 		getKeyEndpoint,
 		decodeGetKeyRequest,
 		encodeGetKeyResponse,
+	))
+
+	router.Path("/api/v1/key/{id}/canceled").Methods("POST").Handler(kithttp.NewServer(
+		canceledKeyEndpoint,
+		decodeCanceledKeyRequest,
+		encodeCanceledKeyResponse,
 	))
 
 	return router

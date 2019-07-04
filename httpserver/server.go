@@ -30,6 +30,7 @@ type Config struct {
 type Storage interface {
 	InsertKey(ctx context.Context, key *types.Key) error
 	GetKey(ctx context.Context) (*types.Key, error)
+	CanceledKey(ctx context.Context, id string) error
 }
 
 // New creates a new http server.

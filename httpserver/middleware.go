@@ -40,3 +40,14 @@ func (m *loggingMiddleware) getKey(ctx context.Context) (*types.Key, error) {
 	return key, err
 }
 
+func (m *loggingMiddleware) canceledKey(ctx context.Context, id string) error {
+	begin := time.Now()
+	err := m.next.canceledKey(ctx, id)
+	err = level.Info(m.logger).Log(
+		"method", "CanceledKey",
+		"err", err,
+		"elapsed", time.Since(begin),
+		"id", id,
+	)
+	return err
+}

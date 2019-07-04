@@ -2,7 +2,8 @@ package storage
 
 import (
 	"context"
-
+	"errors"
+	"fmt"
 
 	"gopkg.in/mgo.v2/bson"
 
@@ -33,6 +34,26 @@ func (s *Storage) GetKey(ctx context.Context) (*types.Key, error) {
 	return key, nil
 }
 
+// CanceledKey updates key Redemption with given id
+func (s *Storage) CanceledKey(ctx context.Context, id string) error {
+	var key *types.Key
+	err := s.session.Collection(collectionKey).FindOne(context.TODO(),bson.M{"id": id}).Decode(&key)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	if !key.Issued {
+		return errors.New("the key was not issued")
+	}
+	if key.Canceled {
+		return errors.New("the key has already been canceled")
+	}
+	_, err = s.session.Collection(collectionKey).UpdateOne(context.TODO(), bson.M{"id": id}, bson.M{"$set": bson.M{"canceled": true}})
+	if err != nil {
+		return err
+	}
+	return nil
+}
 //
 //// CreateSession create new session in storage
 //func (s *Storage) CreateSession(ctx context.Context, session *types.Session) error {

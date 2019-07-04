@@ -12,8 +12,9 @@ import (
 
 // Client is a client for auth-user service.
 type Client struct {
-	createKey endpoint.Endpoint
-	getKey    endpoint.Endpoint
+	createKey   endpoint.Endpoint
+	getKey      endpoint.Endpoint
+	canceledKey endpoint.Endpoint
 }
 
 // NewClient creates a new service client.
@@ -37,6 +38,14 @@ func NewClient(serviceURL string) (*Client, error) {
 			encodeGetKeyRequest,
 			decodeGetKeyResponse,
 		).Endpoint(),
+
+		canceledKey: kithttp.NewClient(
+			"POST",
+			baseURL,
+			encodeCanceledKeyRequest,
+			decodeCanceledKeyResponse,
+		).Endpoint(),
+
 	}
 
 	return c, nil
@@ -62,4 +71,15 @@ func (c *Client) GetKey(ctx context.Context) (*types.Key, error) {
 	}
 	res := response.(getKeyResponse)
 	return res.Key, res.Err
+}
+
+// CanceledKey updates key canceled with given id
+func (c *Client) CanceledKey(ctx context.Context, id string) error {
+	request := canceledKeyRequest{ID: id}
+	response, err := c.canceledKey(ctx, request)
+	if err != nil {
+		return err
+	}
+	res := response.(canceledKeyResponse)
+	return res.Err
 }
