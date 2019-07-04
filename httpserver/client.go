@@ -16,6 +16,7 @@ type Client struct {
 	getKey          endpoint.Endpoint
 	canceledKey     endpoint.Endpoint
 	verificationKey endpoint.Endpoint
+	unreleasedKey   endpoint.Endpoint
 }
 
 // NewClient creates a new service client.
@@ -52,6 +53,13 @@ func NewClient(serviceURL string) (*Client, error) {
 			baseURL,
 			encodeVerificationKeyRequest,
 			decodeVerificationKeyResponse,
+		).Endpoint(),
+
+		unreleasedKey: kithttp.NewClient(
+			"GET",
+			baseURL,
+			encodeUnreleasedKeyRequest,
+			decodeUnreleasedKeyResponse,
 		).Endpoint(),
 	}
 
@@ -100,4 +108,15 @@ func (c *Client) VerificationKey(ctx context.Context, id string) (*types.Key, er
 	}
 	res := response.(verificationKeyResponse)
 	return res.Key, res.Err
+}
+
+// UnreleasedKey return all unreleased keys
+func (c *Client) UnreleasedKey(ctx context.Context) ([]*types.Key, error) {
+	var request interface{}
+	response, err := c.unreleasedKey(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	res := response.(unreleasedKeyResponse)
+	return res.ListKey, res.Err
 }

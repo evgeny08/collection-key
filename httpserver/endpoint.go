@@ -64,3 +64,15 @@ type verificationKeyResponse struct {
 	Key *types.Key
 	Err error
 }
+
+func makeUnreleasedKeyEndpoint(svc service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		listKey, err := svc.unreleasedKey(ctx)
+		return unreleasedKeyResponse{ListKey: listKey, Err: err}, nil
+	}
+}
+
+type unreleasedKeyResponse struct {
+	ListKey []*types.Key
+	Err     error
+}

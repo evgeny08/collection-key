@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"fmt"
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/evgeny08/collection-key/types"
@@ -62,16 +63,14 @@ func (s *Storage) VerificationKey(ctx context.Context, id string) (*types.Key, e
 	return key, nil
 }
 
-//// CreateSession create new session in storage
-//func (s *Storage) CreateSession(ctx context.Context, session *types.Session) error {
-//	_, err := s.session.Collection(collectionAuth).InsertOne(context.TODO(), &session)
-//	return err
-//}
-//
-//// FindAccessToken find AccessToken by storage
-//func (s *Storage) FindAccessToken(ctx context.Context, clientToken string) (*types.Session, error) {
-//	var session *types.Session
-//	filter := bson.M{"access_token": clientToken}
-//	err := s.session.Collection(collectionAuth).FindOne(context.TODO(), filter).Decode(&session)
-//	return session, err
-//}
+// UnreleasedKey return list unreleased key
+func (s *Storage) UnreleasedKey(ctx context.Context) ([]*types.Key, error) {
+	var key []*types.Key
+	filter := bson.M{"issued": false}
+	_, err := s.session.Collection(collectionKey).Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(key)
+	return key, nil
+}

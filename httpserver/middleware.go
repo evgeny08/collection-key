@@ -63,3 +63,14 @@ func (m *loggingMiddleware) verificationKey(ctx context.Context, id string) (*ty
 	)
 	return key, err
 }
+
+func (m *loggingMiddleware) unreleasedKey(ctx context.Context) ([]*types.Key, error) {
+	begin := time.Now()
+	listKey, err := m.next.unreleasedKey(ctx)
+	err = level.Info(m.logger).Log(
+		"method", "UnreleasedKey",
+		"err", err,
+		"elapsed", time.Since(begin),
+	)
+	return listKey, err
+}

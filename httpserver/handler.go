@@ -33,6 +33,9 @@ func newHandler(cfg *handlerConfig) http.Handler {
 	verificationKeyEndpoint := makeVerificationKeyEndpoint(svc)
 	verificationKeyEndpoint = applyMiddleware(verificationKeyEndpoint, "GetKey", cfg)
 
+	unreleasedKeyEndpoint := makeUnreleasedKeyEndpoint(svc)
+	unreleasedKeyEndpoint = applyMiddleware(unreleasedKeyEndpoint, "UnreleasedKey", cfg)
+
 	router := mux.NewRouter()
 
 	router.Path("/api/v1/key").Methods("POST").Handler(kithttp.NewServer(
@@ -57,6 +60,12 @@ func newHandler(cfg *handlerConfig) http.Handler {
 		verificationKeyEndpoint,
 		decodeVerificationKeyRequest,
 		encodeVerificationKeyResponse,
+	))
+
+	router.Path("/api/v1/key").Methods("GET").Handler(kithttp.NewServer(
+		unreleasedKeyEndpoint,
+		decodeUnreleasedKeyRequest,
+		encodeUnreleasedKeyResponse,
 	))
 
 	return router

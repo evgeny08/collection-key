@@ -16,6 +16,7 @@ type service interface {
 	getKey(ctx context.Context) (*types.Key, error)
 	canceledKey(ctx context.Context, id string) error
 	verificationKey(ctx context.Context, id string) (*types.Key, error)
+	unreleasedKey(ctx context.Context) ([]*types.Key, error)
 }
 
 type basicService struct {
@@ -80,6 +81,18 @@ func (s *basicService) verificationKey(ctx context.Context, id string) (*types.K
 		return nil, errorf(ErrBadParams, "failed to find unreleased key: %v", err)
 	}
 	return key, nil
+}
+
+// unreleasedKey return all unreleased keys
+func (s *basicService) unreleasedKey(ctx context.Context) ([]*types.Key, error) {
+	listKey, err := s.storage.UnreleasedKey(ctx)
+	if err != nil {
+		if storageErrIsNotFound(err) {
+			return nil, errorf(ErrNotFound, "keys is not found")
+		}
+		return nil, errorf(ErrBadParams, "failed to get keys: %v", err)
+	}
+	return listKey, nil
 }
 
 // storageErrIsNotFound checks if the storage error is "not found".

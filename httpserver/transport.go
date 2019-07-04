@@ -128,6 +128,34 @@ func decodeVerificationKeyResponse(_ context.Context, r *http.Response) (interfa
 	return res, err
 }
 
+// Service UnreleasedKey encoders/decoders.
+func encodeUnreleasedKeyRequest(_ context.Context, r *http.Request, _ interface{}) error {
+	r.URL.Path = "/api/v1/key"
+	return nil
+}
+
+func decodeUnreleasedKeyRequest(_ context.Context, _ *http.Request) (interface{}, error) {
+	return nil, nil
+}
+
+func encodeUnreleasedKeyResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	res := response.(unreleasedKeyResponse)
+	if res.Err != nil {
+		return encodeError(w, res.Err, true)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(res.ListKey)
+}
+
+func decodeUnreleasedKeyResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	if r.StatusCode < 200 || r.StatusCode > 299 {
+		return unreleasedKeyResponse{Err: decodeError(r)}, nil
+	}
+	res := unreleasedKeyResponse{ListKey: []*types.Key{}}
+	err := json.NewDecoder(r.Body).Decode(&res.ListKey)
+	return res, err
+}
+
 // errKindToStatus maps service error kinds to the HTTP response codes.
 var errKindToStatus = map[ErrorKind]int{
 	ErrBadParams: http.StatusBadRequest,
