@@ -24,7 +24,7 @@ func (s *Storage) GetKey(ctx context.Context) (*types.Key, error) {
 		return nil, err
 	}
 
-	_, err = s.session.Collection(collectionKey).UpdateOne(context.TODO(),bson.M{"id": key.ID}, bson.M{"$set": bson.M{"issued": true}})
+	_, err = s.session.Collection(collectionKey).UpdateOne(context.TODO(),bson.M{"issued": key.Issued}, bson.M{"$set": bson.M{"issued": true}})
 	if err != nil {
 		return nil, err
 	}
