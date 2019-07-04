@@ -29,6 +29,7 @@ type Config struct {
 // Storage is a persistent collection-key storage.
 type Storage interface {
 	InsertKey(ctx context.Context, key *types.Key) error
+	GetKey(ctx context.Context) (*types.Key, error)
 }
 
 // New creates a new http server.

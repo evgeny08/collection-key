@@ -12,6 +12,7 @@ import (
 // service manages HTTP server methods.
 type service interface {
 	createKey(ctx context.Context) (*types.Key, error)
+	getKey(ctx context.Context) (*types.Key, error)
 }
 
 type basicService struct {
@@ -43,6 +44,16 @@ func genKey(n int) string {
 	}
 	return string(b)
 }
+
+// GetKey returns an unreleased key
+func (s *basicService) getKey(ctx context.Context) (*types.Key, error){
+	key, err := s.storage.GetKey(ctx)
+	if err != nil {
+		return nil, errorf(ErrBadParams, "failed to find unreleased key: %v", err)
+	}
+	return key, nil
+}
+
 
 // storageErrIsNotFound checks if the storage error is "not found".
 func storageErrIsNotFound(err error) bool {

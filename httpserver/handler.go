@@ -24,12 +24,21 @@ func newHandler(cfg *handlerConfig) http.Handler {
 	createKeyEndpoint := makeCreateKeyEndpoint(svc)
 	createKeyEndpoint = applyMiddleware(createKeyEndpoint, "CreateKey", cfg)
 
+	getKeyEndpoint := makeGetKeyEndpoint(svc)
+	getKeyEndpoint = applyMiddleware(getKeyEndpoint, "GetKey", cfg)
+
 	router := mux.NewRouter()
 
 	router.Path("/api/v1/key").Methods("POST").Handler(kithttp.NewServer(
 		createKeyEndpoint,
 		decodeCreateKeyRequest,
 		encodeCreateKeyResponse,
+	))
+
+	router.Path("/api/v1/key/issued").Methods("GET").Handler(kithttp.NewServer(
+		getKeyEndpoint,
+		decodeGetKeyRequest,
+		encodeGetKeyResponse,
 	))
 
 	return router

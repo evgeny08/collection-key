@@ -19,3 +19,15 @@ type createKeyResponse struct {
 	Key *types.Key
 	Err error
 }
+
+func makeGetKeyEndpoint(svc service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		key, err := svc.getKey(ctx)
+		return getKeyResponse{Key: key, Err: err}, nil
+	}
+}
+
+type getKeyResponse struct {
+	Key *types.Key
+	Err error
+}

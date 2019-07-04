@@ -3,7 +3,8 @@ package storage
 import (
 	"context"
 
-	//"gopkg.in/mgo.v2/bson"
+
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/evgeny08/collection-key/types"
 )
@@ -14,13 +15,24 @@ func (s *Storage) InsertKey(ctx context.Context, key *types.Key) error {
 	return err
 }
 
-//// FindUserByLogin find user by given login
-//func (s *Storage) FindUserByLogin(ctx context.Context, login string) (*types.User, error) {
-//	var user *types.User
-//	filter := bson.M{"login": login}
-//	err := s.session.Collection(collectionUser).FindOne(context.TODO(), filter).Decode(&user)
-//	return user, err
-//}
+// GetKey returns an unreleased key
+func (s *Storage) GetKey(ctx context.Context) (*types.Key, error) {
+	var key *types.Key
+	filter := bson.M{"issued": false}
+	err := s.session.Collection(collectionKey).FindOne(context.TODO(), filter).Decode(&key)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.session.Collection(collectionKey).UpdateOne(context.TODO(),bson.M{"id": key.ID}, bson.M{"$set": bson.M{"issued": true}})
+	if err != nil {
+		return nil, err
+	}
+	key.Issued = true
+
+	return key, nil
+}
+
 //
 //// CreateSession create new session in storage
 //func (s *Storage) CreateSession(ctx context.Context, session *types.Session) error {

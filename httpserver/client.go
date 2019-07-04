@@ -13,6 +13,7 @@ import (
 // Client is a client for auth-user service.
 type Client struct {
 	createKey endpoint.Endpoint
+	getKey    endpoint.Endpoint
 }
 
 // NewClient creates a new service client.
@@ -29,6 +30,13 @@ func NewClient(serviceURL string) (*Client, error) {
 			encodeCreateKeyRequest,
 			decodeCreateKeyResponse,
 		).Endpoint(),
+
+		getKey: kithttp.NewClient(
+			"GET",
+			baseURL,
+			encodeGetKeyRequest,
+			decodeGetKeyResponse,
+		).Endpoint(),
 	}
 
 	return c, nil
@@ -42,5 +50,16 @@ func (c *Client) CreateKey(ctx context.Context) (*types.Key, error) {
 		return nil, err
 	}
 	res := response.(createKeyResponse)
+	return res.Key, res.Err
+}
+
+// GetKey returns an unreleased key
+func (c *Client) GetKey(ctx context.Context) (*types.Key, error) {
+	var request interface{}
+	response, err := c.getKey(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	res := response.(getKeyResponse)
 	return res.Key, res.Err
 }

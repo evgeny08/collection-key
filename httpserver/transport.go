@@ -40,6 +40,35 @@ func decodeCreateKeyResponse(_ context.Context, r *http.Response) (interface{}, 
 	return res, err
 }
 
+// Service.GetKey encoders/decoders.
+func encodeGetKeyRequest(_ context.Context, r *http.Request, _ interface{}) error {
+	r.URL.Path = "/api/v1/key/issued"
+	return nil
+}
+
+func decodeGetKeyRequest(_ context.Context, _ *http.Request) (interface{}, error) {
+	return nil, nil
+}
+
+func encodeGetKeyResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	res := response.(getKeyResponse)
+	if res.Err != nil {
+		return encodeError(w, res.Err, true)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(&res.Key.ID)
+}
+
+func decodeGetKeyResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	if r.StatusCode < 200 || r.StatusCode > 299 {
+		return getKeyResponse{Err: decodeError(r)}, nil
+	}
+	res := getKeyResponse{}
+	err := json.NewDecoder(r.Body).Decode(&res.Key.ID)
+	return res, err
+}
+
+
 // errKindToStatus maps service error kinds to the HTTP response codes.
 var errKindToStatus = map[ErrorKind]int{
 	ErrBadParams: http.StatusBadRequest,
