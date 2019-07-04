@@ -3,7 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
-	"fmt"
+	"go.mongodb.org/mongo-driver/mongo"
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/evgeny08/collection-key/types"
@@ -65,12 +65,22 @@ func (s *Storage) VerificationKey(ctx context.Context, id string) (*types.Key, e
 
 // UnreleasedKey return list unreleased key
 func (s *Storage) UnreleasedKey(ctx context.Context) ([]*types.Key, error) {
-	var key []*types.Key
 	filter := bson.M{"issued": false}
-	_, err := s.session.Collection(collectionKey).Find(context.TODO(), filter)
+	cursor, err := s.session.Collection(collectionKey).Find(context.TODO(), filter)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(key)
-	return key, nil
+	var listKey []*types.Key
+	for cursor.Next(context.TODO()) {
+		var key *types.Key
+		err := cursor.Decode(&key)
+		if err != nil {
+			return nil, err
+		}
+		listKey = append(listKey, key)
+	}
+	if len(listKey) == 0 {
+		return nil, mongo.ErrNoDocuments
+	}
+	return listKey, nil
 }
