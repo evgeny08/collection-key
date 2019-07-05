@@ -56,7 +56,7 @@ func (s *basicService) getKey(ctx context.Context) (string, error) {
 		if storageErrIsNotFound(err) {
 			return "", errorf(ErrNotFound, "key is not found")
 		}
-		return "", errorf(ErrBadParams, "failed to delivery key: %v", err)
+		return "", errorf(ErrBadParams, "failed to get key: %v", err)
 	}
 	return key.ID, nil
 }
