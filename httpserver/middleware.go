@@ -28,14 +28,14 @@ func (m *loggingMiddleware) createKey(ctx context.Context) (*types.Key, error) {
 	return key, err
 }
 
-func (m *loggingMiddleware) getKey(ctx context.Context) (*types.Key, error) {
+func (m *loggingMiddleware) getKey(ctx context.Context) (string, error) {
 	begin := time.Now()
 	key, err := m.next.getKey(ctx)
 	err = level.Info(m.logger).Log(
 		"method", "GetKey",
 		"err", err,
 		"elapsed", time.Since(begin),
-		"id", key.ID,
+		"id", key,
 	)
 	return key, err
 }

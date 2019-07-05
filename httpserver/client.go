@@ -78,11 +78,11 @@ func (c *Client) CreateKey(ctx context.Context) (*types.Key, error) {
 }
 
 // GetKey returns an unreleased key
-func (c *Client) GetKey(ctx context.Context) (*types.Key, error) {
+func (c *Client) GetKey(ctx context.Context) (string, error) {
 	var request interface{}
 	response, err := c.getKey(ctx, request)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	res := response.(getKeyResponse)
 	return res.Key, res.Err

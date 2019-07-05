@@ -28,7 +28,7 @@ func makeGetKeyEndpoint(svc service) endpoint.Endpoint {
 }
 
 type getKeyResponse struct {
-	Key *types.Key
+	Key string
 	Err error
 }
 

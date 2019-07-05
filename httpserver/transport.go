@@ -58,7 +58,7 @@ func encodeGetKeyResponse(_ context.Context, w http.ResponseWriter, response int
 		return encodeError(w, res.Err, true)
 	}
 	w.Header().Set("Content-Type", "application/json")
-	return json.NewEncoder(w).Encode(&res.Key.ID)
+	return json.NewEncoder(w).Encode(&res.Key)
 }
 
 func decodeGetKeyResponse(_ context.Context, r *http.Response) (interface{}, error) {
@@ -66,7 +66,7 @@ func decodeGetKeyResponse(_ context.Context, r *http.Response) (interface{}, err
 		return getKeyResponse{Err: decodeError(r)}, nil
 	}
 	res := getKeyResponse{}
-	err := json.NewDecoder(r.Body).Decode(&res.Key.ID)
+	err := json.NewDecoder(r.Body).Decode(&res.Key)
 	return res, err
 }
 
@@ -123,7 +123,7 @@ func decodeVerificationKeyResponse(_ context.Context, r *http.Response) (interfa
 	if r.StatusCode < 200 || r.StatusCode > 299 {
 		return verificationKeyResponse{Err: decodeError(r)}, nil
 	}
-	res := getKeyResponse{Key: &types.Key{}}
+	res := verificationKeyResponse{Key: &types.Key{}}
 	err := json.NewDecoder(r.Body).Decode(&res.Key)
 	return res, err
 }

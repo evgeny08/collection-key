@@ -13,7 +13,7 @@ import (
 
 type mockService struct {
 	onCreateKey       func(ctx context.Context) (*types.Key, error)
-	onGetKey          func(ctx context.Context) (*types.Key, error)
+	onGetKey          func(ctx context.Context) (string, error)
 	onCanceledKey     func(ctx context.Context, id string) error
 	onVerificationKey func(ctx context.Context, id string) (*types.Key, error)
 	onUnreleasedKey   func(ctx context.Context) ([]*types.Key, error)
@@ -23,7 +23,7 @@ func (s *mockService) createKey(ctx context.Context) (*types.Key, error) {
 	return s.onCreateKey(ctx)
 }
 
-func (s *mockService) getKey(ctx context.Context) (*types.Key, error) {
+func (s *mockService) getKey(ctx context.Context) (string, error) {
 	return s.onGetKey(ctx)
 }
 
@@ -63,18 +63,18 @@ func TestCreateKey(t *testing.T) {
 	defer server.Close()
 
 	testCases := []struct {
-		name          string
-		key     *types.Key
-		err           error
+		name string
+		key  *types.Key
+		err  error
 	}{
 		{
 			name: "ok response",
-			key:  &types.Key{
+			key: &types.Key{
 				ID:       "7777",
 				Issued:   false,
 				Canceled: false,
 			},
-			err:  nil,
+			err: nil,
 		},
 	}
 
@@ -100,9 +100,9 @@ func TestGetKey(t *testing.T) {
 	defer server.Close()
 
 	testCases := []struct {
-		name          string
-		key     *types.Key
-		err           error
+		name string
+		key  *types.Key
+		err  error
 	}{
 		{
 			name: "ok response",
@@ -120,14 +120,14 @@ func TestGetKey(t *testing.T) {
 				Issued:   true,
 				Canceled: false,
 			},
-			err:  errorf(ErrNotFound, "failed to find unreleased key"),
+			err: errorf(ErrNotFound, "failed to find unreleased key"),
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc.onGetKey = func(ctx context.Context) (*types.Key, error) {
-				return tc.key, tc.err
+			svc.onGetKey = func(ctx context.Context) (string, error) {
+				return "", tc.err
 			}
 			gotKey, gotErr := client.GetKey(context.Background())
 			if !reflect.DeepEqual(gotKey, tc.key) {
@@ -141,3 +141,128 @@ func TestGetKey(t *testing.T) {
 	}
 }
 
+func TestCanceledKey(t *testing.T) {
+	server, client, svc := startTestServer(t)
+	defer server.Close()
+
+	testCases := []struct {
+		name string
+		key  *types.Key
+		err  error
+	}{
+		{
+			name: "ok response",
+			key: &types.Key{
+				ID:       "ki87",
+				Issued:   true,
+				Canceled: false,
+			},
+			err: nil,
+		},
+		{
+			name: "err response",
+			key: &types.Key{
+				ID:       "trew",
+				Issued:   false,
+				Canceled: false,
+			},
+			err: errorf(ErrBadParams, "failed to canceled key"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			svc.onCanceledKey = func(ctx context.Context, id string) error {
+				return tc.err
+			}
+			gotErr := client.CanceledKey(context.Background(), tc.name)
+			if !reflect.DeepEqual(gotErr, tc.err) {
+				t.Fatalf("got error %#v want %#v", gotErr, tc.err)
+			}
+
+		})
+	}
+}
+
+func TestVerificationKey(t *testing.T) {
+	server, client, svc := startTestServer(t)
+	defer server.Close()
+
+	testCases := []struct {
+		name string
+		key  *types.Key
+		err  error
+	}{
+		{
+			name: "ok response",
+			key: &types.Key{
+				ID:       "ki87",
+				Issued:   false,
+				Canceled: false,
+			},
+			err: nil,
+		},
+		{
+			name: "err response",
+			key: &types.Key{
+				ID:       "trew",
+				Issued:   true,
+				Canceled: false,
+			},
+			err: errorf(ErrNotFound, "failed to find unreleased key"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			svc.onVerificationKey = func(ctx context.Context, id string) (*types.Key, error) {
+				return tc.key, tc.err
+			}
+			gotKey, gotErr := client.VerificationKey(context.Background(), tc.name)
+			if !reflect.DeepEqual(gotKey, tc.key) {
+				t.Fatalf("got key %#v want %#v", gotKey, tc.key)
+			}
+			if !reflect.DeepEqual(gotErr, tc.err) {
+				t.Fatalf("got error %#v want %#v", gotErr, tc.err)
+			}
+
+		})
+	}
+}
+
+func TestUnreleasedKey(t *testing.T) {
+	server, client, svc := startTestServer(t)
+	defer server.Close()
+
+	testCases := []struct {
+		name string
+		key  *types.Key
+		err  error
+	}{
+		{
+			name: "ok response",
+			key: &types.Key{
+				ID:       "7777",
+				Issued:   false,
+				Canceled: false,
+			},
+			err: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			svc.onUnreleasedKey = func(ctx context.Context) ([]*types.Key, error) {
+				return tc.key, tc.err
+			}
+			gotKey, gotErr := client.UnreleasedKey(context.Background())
+			if !reflect.DeepEqual(gotKey, tc.key) {
+				t.Fatalf("got key %#v want %#v", gotKey, tc.key)
+			}
+			if !reflect.DeepEqual(gotErr, tc.err) {
+				t.Fatalf("got error %#v want %#v", gotErr, tc.err)
+			}
+
+		})
+	}
+}
